@@ -36,3 +36,5 @@ def load_amd_data(filepath="data/amd_stock_data.csv"):
     except Exception as e:
         print(f"Error loading AMD data: {e}")
         return None
+
+

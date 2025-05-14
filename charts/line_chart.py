@@ -19,19 +19,23 @@ amd_df['Date'] = pd.to_datetime(amd_df['Date'])
 amd_df = amd_df.sort_values('Date')
 amd_df['Daily Return'] = amd_df['Close'].pct_change()
 amd_df['Volatility'] = amd_df['Daily Return'].rolling(window=20).std()
-
-sns.set(style="darkgrid")
+amd_df['MA20'] = amd_df['Close'].rolling(window=20).mean()
+amd_df['MA50'] = amd_df['Close'].rolling(window=50).mean()
 
 def plot_line_chart(df, x_col, y_col):
-    plt.figure(figsize=(10, 5))
-    line, = plt.plot(df[x_col], df[y_col], marker='o', markersize=3, linestyle='-', linewidth=1)
-    plt.title(f"{y_col} over {x_col}")
-    plt.xlabel(x_col)
-    plt.ylabel(y_col)
-    plt.grid(True)
-    plt.tight_layout()
+    plt.close('all') 
+
+    fig, ax = plt.subplots(figsize=(10, 5))
+
+    line, = ax.plot(df[x_col], df[y_col], marker='o', markersize=3, linestyle='-', linewidth=1)
+    ax.set_title("Closing Price over Time")
+    ax.set_xlabel(x_col)
+    ax.set_ylabel("Closing Price")
+    ax.grid(True)
+    fig.tight_layout()
 
     cursor = mplcursors.cursor(line, hover=True)
+
     @cursor.connect("add")
     def on_hover(sel):
         index = int(sel.index)
@@ -80,12 +84,19 @@ def plot_volatility(ax, canvas, df):
     canvas.draw()
 
 def plot_volume(ax, canvas, df):
+    
     ax.clear()
-    ax.bar(df.index, df['Volume'], color='#7f8c8d')
+    ax.bar(df.index, df['Volume'], color='darkred')
+
     ax.set_title("Trading Volume Over Time", fontsize=14)
     ax.set_xlabel("Date")
     ax.set_ylabel("Volume")
+
+    import matplotlib.ticker as mticker
+    ax.yaxis.set_major_formatter(mticker.FuncFormatter(lambda x, _: f'{int(x):,}'))
+
     canvas.draw()
+
 
 def generate_chart(df):
     plt.figure(figsize=(10, 5))
@@ -99,12 +110,28 @@ def generate_chart(df):
     plt.close()
 
 def plot_nvda_vs_amd(ax, canvas, nvda_df, amd_df):
-    merged = pd.merge(nvda_df.reset_index()[['Date', 'Close']], amd_df[['Date', 'Close']], on='Date', suffixes=('_NVDA', '_AMD'))
+    merged = pd.merge(
+        nvda_df.reset_index()[['Date', 'Close', 'MA20', 'MA50']],
+        amd_df[['Date', 'Close', 'MA20', 'MA50']],
+        on='Date',
+        suffixes=('_NVDA', '_AMD')
+    )
+
     ax.clear()
-    ax.plot(merged['Date'], merged['Close_NVDA'], label='NVIDIA (NVDA)', color='#2a9df4')
-    ax.plot(merged['Date'], merged['Close_AMD'], label='AMD', color='#e74c3c')
-    ax.set_title("NVIDIA vs AMD: Closing Price Comparison", fontsize=14)
+    ax.plot(merged['Date'], merged['Close_NVDA'], label='NVIDIA (Close)', color='#2a9df4', linewidth=2)
+    ax.plot(merged['Date'], merged['MA20_NVDA'], label='NVIDIA MA20', linestyle='--', color='#2a9df4', alpha=0.7)
+    ax.plot(merged['Date'], merged['MA50_NVDA'], label='NVIDIA MA50', linestyle=':', color='#2a9df4', alpha=0.5)
+
+    ax.plot(merged['Date'], merged['Close_AMD'], label='AMD (Close)', color='#d62728', linewidth=2)
+    ax.plot(merged['Date'], merged['MA20_AMD'], label='AMD MA20', linestyle='--', color='#d62728', alpha=0.7)
+    ax.plot(merged['Date'], merged['MA50_AMD'], label='AMD MA50', linestyle=':', color='#d62728', alpha=0.5)
+
+    ax.set_title("NVIDIA vs AMD: Closing Prices with Moving Averages", fontsize=14)
     ax.set_xlabel("Date")
-    ax.set_ylabel("Closing Price ($)")
+    ax.set_ylabel("Price ($)")
     ax.legend()
     canvas.draw()
+
+
+if __name__ == "__main__":
+    plot_line_chart(df.reset_index(), 'Date', 'Close')

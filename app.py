@@ -10,12 +10,14 @@ from charts.line_chart import (
     plot_daily_returns,
     plot_volatility,
     plot_volume,
-    plot_nvda_vs_amd
+    plot_nvda_vs_amd,
+    plot_line_chart
 )
 
 # Create main GUI window
 root = tk.Tk()
-root.title("📊 Stock Visualization App")
+root.attributes('-fullscreen', True)
+root.title("Stock Visualization App")
 root.geometry("1080x700")
 root.configure(bg="#f4f4f4")
 
@@ -57,14 +59,14 @@ buttons = [
     ("Volatility", lambda: plot_volatility(ax, canvas, nvda_df)),
     ("Volume", lambda: plot_volume(ax, canvas, nvda_df)),
     ("Compare NVDA vs AMD", lambda: plot_nvda_vs_amd(ax, canvas, nvda_df, amd_df)),
+    ("Interactive Tooltip Chart", lambda: plot_line_chart(nvda_df.reset_index(), 'Date', 'Close')),
 ]
 
-# Create and display buttons
 for text, cmd in buttons:
     tk.Button(menu_frame, text=text, command=cmd, **button_style).pack(side=tk.LEFT, padx=10)
 
-# Show default chart on startup
+
 plot_closing_price(ax, canvas, nvda_df)
 
-# Start GUI loop
+
 root.mainloop()
