@@ -135,3 +135,5 @@ def plot_nvda_vs_amd(ax, canvas, nvda_df, amd_df):
 
 if __name__ == "__main__":
     plot_line_chart(df.reset_index(), 'Date', 'Close')
+
+
